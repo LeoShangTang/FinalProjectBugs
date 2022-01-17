@@ -6,12 +6,12 @@ Fix updateButton method ----> how??!?!?!?!
 
 BIGGEST PROBLEM TO FIX:
 
-        Press Study time ---> Press Start ---> Press Reset
+    Start ---> Pause ----> Start
 
-This causes the time to be reset to the study timer (10 minuites) and not to break timer.
-The study and breaktime button is also stuck at the text study because of this bug.
+    NOW PAUSE BUTTON NO LONGER WORKS
+    This also messes up with the reset button, causing some other weird bugs but this should be fixed when pause button works again
 
-The cause for these errors are definitely related to my boolean system...
+    BUT, without pressing pause, reset button now properly resets back to conresponding timers
 
 */
 package com.example.finalproject;
@@ -72,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
         startPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(timerRunning){
+                if(timerRunning == true){
                     pauseTimer();
-                }else{
+                }else if(timerRunning == false){
                     startTimer();
                 }
             }
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         countDownTimer = new CountDownTimer(timeLeftMilliseconds, 1000) {
 
             @Override
-            public void onTick(long timeLeftUntilFinished) { // COUNTDOWN
+            public void onTick(long timeLeftUntilFinished) { // COUNTDOWN HAPPENS
 
                 timeLeftMilliseconds = timeLeftUntilFinished;
                 updateCountDownText();
@@ -130,19 +130,56 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() { // What Timer does after it's done
 
-                timerRunning = false;
-                breakTimerRunning = true;
+                if(timeLeftMilliseconds == startBreakTimerMilliseconds){ // if break timer ends, automatically start study timer
 
-                timeLeftMilliseconds = startBreakTimerMilliseconds; // Sets back to breakTimer (SEPERATE METHOD TO BE ADDED ON LATER)
+                    startTimer();
+                    timerRunning = true;
+                    breakTimerRunning = false;
 
-                startPauseButton.setText("Start");
+                    startPauseButton.setText("Pause");
+
+                    updateCountDownText();
+
+                }else{// if start timer ends, automatically start break timer
+
+
+                    breakTimerStart();
+                    startTimer();
+                    breakTimerRunning = true;
+                    timerRunning = false;
+
+                    startPauseButton.setText("Pause");
+
+                    updateCountDownText();
+
+                }
+
+                 //starts break timer
+
+
+                //timeLeftMilliseconds = startBreakTimerMilliseconds; // Sets back to breakTimer (SEPERATE METHOD TO BE ADDED ON LATER)
+
+                //startPauseButton.setText("Start");
                //updateButtons();
             }
         }
         .start();
         // Add if else statement for breakTimer????????
-        timerRunning = true;
-        breakTimerRunning = false; // ????
+
+        if(timeLeftMilliseconds == startTimerMilliseconds){ // If study timer currently exists, timer running is true after button pressed
+
+            timerRunning = true;
+            breakTimerRunning = false;
+
+        }else if(timeLeftBreakTimer == startBreakTimerMilliseconds){// If break timer currently exists, break timer running is true after button pressed
+
+            breakTimerRunning = true;
+            timerRunning = false;
+
+        }
+
+       // timerRunning = true;
+       // breakTimerRunning = false; // ????
 
         startPauseButton.setText("Pause");
         //updateButtons();
@@ -165,12 +202,12 @@ public class MainActivity extends AppCompatActivity {
     //LOTS OF BUGS IN RESET METHOD
     private void resetTimer(){
 
-        // probably has bugs but I don't know
-        if(breakTimerRunning == true ||timeLeftMilliseconds == startBreakTimerMilliseconds){
+
+        if(breakTimerRunning == true ||timeLeftMilliseconds == startBreakTimerMilliseconds){ //Resets Break timer back
 
             timeLeftMilliseconds = startBreakTimerMilliseconds;
 
-        }else if(breakTimerRunning == false||timeLeftMilliseconds == startTimerMilliseconds){ //problems
+        }else if(timerRunning == true||timeLeftMilliseconds == startTimerMilliseconds){ //Resets Study Timer back
 
             timeLeftMilliseconds = startTimerMilliseconds;
 
@@ -197,7 +234,8 @@ public class MainActivity extends AppCompatActivity {
         cancelTimerBugFix();
 
         //Setting booleans
-        breakTimerRunning = true;
+        ///breakTimerRunning = true; NOT TRUE YET--- ONLY TRUE IF PRESS START
+        breakTimerRunning = false;
         timerRunning = false;
 
         breakStudyTimeButton.setText("Study Time");
