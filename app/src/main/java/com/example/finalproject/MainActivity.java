@@ -28,7 +28,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -38,17 +37,14 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     //Times
-    private static final long startTimeinMilliseconds = 600000;
-    private static final long startBreakTimerMilliseconds = 300000;
+    private static final long startTimeinMilliseconds = 600000; // 600000
+    private static final long startBreakTimerMilliseconds = 300000; // 300000
 
     private long timeLeftMilliseconds = startTimeinMilliseconds;
-    private long timeLeftBreakTimer = startBreakTimerMilliseconds;
 
     private CountDownTimer countDownTimer;
 
     private boolean timerRunning;
-    private boolean breakTimerRunning; // do ittttt
-
     private String breakOrStudyTimer = "study";
 
     // Making sure that countdown text updates and is viewable
@@ -110,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         startPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(timerRunning == true){
+                if(timerRunning){
 
                     pauseTimer();
 
@@ -169,18 +165,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTick(long timeLeftUntilFinished) { // COUNTDOWN HAPPENS
 
-//                if(timeLeftMilliseconds == startBreakTimerMilliseconds){
-//
-//                    timerRunning = false;
-//                    breakTimerRunning = true;
-//
-//                }else{
-//
-//                    breakTimerRunning = false;
-//                    timerRunning = true;
-//
-//                }
-
                 timerRunning = true;
 
                 timeLeftMilliseconds = timeLeftUntilFinished;
@@ -192,54 +176,39 @@ public class MainActivity extends AppCompatActivity {
 
                 if(breakOrStudyTimer == "break"){ // if break timer ends, automatically start study timer
 
+                    timerRunning = true;
+                    breakOrStudyTimer = "study";
                     startTimer();
 
-                    startPauseButton.setText("Pause");
+                    //startPauseButton.setText("Pause");
+
+                    updateButtons();
 
                     updateCountDownText();
 
                 }else{// if start timer ends, automatically start break timer
 
-
+                    timerRunning = true;
+                    breakOrStudyTimer = "break";
                     breakTimerStart();
                     startTimer();
 
-                    startPauseButton.setText("Pause");
+                    //startPauseButton.setText("Pause");
+
+                    updateButtons();
 
                     updateCountDownText();
 
                 }
 
-                 //starts break timer
-
-
-                //timeLeftMilliseconds = startBreakTimerMilliseconds; // Sets back to breakTimer (SEPERATE METHOD TO BE ADDED ON LATER)
-
-                //startPauseButton.setText("Start");
-               //updateButtons();
             }
         }
         .start();
-        // Add if else statement for breakTimer????????
-
-        //PROBLEM HERE
-//        if(timeLeftMilliseconds == startTimeinMilliseconds){ // If study timer currently exists, timer running is true after button pressed
-//
-//            timerRunning = true;
-//            breakTimerRunning = false;
-//
-//        }else if(timeLeftBreakTimer == startBreakTimerMilliseconds){// If break timer currently exists, break timer running is true after button pressed
-//
-//            breakTimerRunning = true;
-//            timerRunning = false;
-//
-//        }
 
        timerRunning = true;
-       // breakTimerRunning = false; // ????
+       //startPauseButton.setText("Pause");
 
-        startPauseButton.setText("Pause");
-        //updateButtons();
+        updateButtons();
     }
 
     // --------------- PAUSES TIMER
@@ -247,26 +216,16 @@ public class MainActivity extends AppCompatActivity {
 
         cancelTimerBugFix();
 
-//        if(breakTimerRunning == true ){ //Resets Break timer back
-//
-//            breakTimerRunning = false;
-//
-//        }else if(timerRunning == true){ //Resets Study Timer back
-//
-//            timerRunning = false;
-//
-//        }
         timerRunning = false;
 
-        startPauseButton.setText("Start");
+        //startPauseButton.setText("Start");
 
-        //updateButtons();
+        updateButtons();
     }
 
     // --------------- RESETS TIMER
     //LOTS OF BUGS IN RESET METHOD
     private void resetTimer(){
-
 
         if(breakOrStudyTimer == "break"){
 
@@ -278,29 +237,17 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-//        if(breakTimerRunning == true ){ //Resets Break timer back (|| timeLeftMilliseconds == startBreakTimerMilliseconds)
-//
-//
-//            timeLeftMilliseconds = startBreakTimerMilliseconds;
-//
-//        }if(timerRunning == true ){ //Resets Study Timer back (|| timeLeftMilliseconds == startTimeinMilliseconds)
-//
-//            timeLeftMilliseconds = startTimeinMilliseconds;
-//
-//        }
-
         updateCountDownText();
-
         cancelTimerBugFix();
 
         timerRunning = false;
-        startPauseButton.setText("Start");
+        //startPauseButton.setText("Start");
 
-        //updateButtons();
+        updateButtons();
 
     }
 
-    // --------------- BREAK TIMER STARTS
+    // --------------- BREAK TIMER SWITCHES
     private void breakTimerStart(){
 
         timeLeftMilliseconds = startBreakTimerMilliseconds; // setting timer to the break time
@@ -308,21 +255,17 @@ public class MainActivity extends AppCompatActivity {
         updateCountDownText();
         cancelTimerBugFix();
 
-        //Setting booleans
-        ///breakTimerRunning = true; NOT TRUE YET--- ONLY TRUE IF PRESS START
-
         breakOrStudyTimer = "break";
-
         timerRunning = false;
 
-        breakStudyTimeButton.setText("Study Time");
-        startPauseButton.setText("Start");
+        //breakStudyTimeButton.setText("Study Time");
+        //startPauseButton.setText("Start");
 
-        //updateButtons()
+        updateButtons();
 
     }
 
-    // --------------- STUDY TIMER STARTS AGAIN
+    // --------------- STUDY TIMER SWITCHES BACK
     private void studyTimerStart(){
 
         timeLeftMilliseconds = startTimeinMilliseconds; // setting timer back to study time
@@ -330,14 +273,14 @@ public class MainActivity extends AppCompatActivity {
         updateCountDownText();
         cancelTimerBugFix();
 
-        //Setting booleans
+
         breakOrStudyTimer = "study";
-        timerRunning = false; // Be careful --- Change to false maybe..
+        timerRunning = false;
 
-        breakStudyTimeButton.setText("Break Time");
-       startPauseButton.setText("Start");
+//        breakStudyTimeButton.setText("Break Time");
+//       startPauseButton.setText("Start");
 
-      //updateButtons()
+      updateButtons();
 
     }
 
@@ -346,15 +289,23 @@ public class MainActivity extends AppCompatActivity {
     private void updateButtons(){
 
         if(timerRunning){
+
             startPauseButton.setText("Pause");
-        }else{
+
+        }else if(timerRunning == false){
+
             startPauseButton.setText("Start");
-        } if(breakTimerRunning == true||timeLeftMilliseconds == startBreakTimerMilliseconds){
+
+        }
+
+        if(breakOrStudyTimer == "break"){
+
+            breakStudyTimeButton.setText("Study TIme");
+
+        }else if(breakOrStudyTimer == "study"){
+
             breakStudyTimeButton.setText("Break Time");
-            startPauseButton.setText("Start");
-        }else{
-            breakStudyTimeButton.setText("Study Time");
-            startPauseButton.setText("Start");
+
         }
 
     }
@@ -372,10 +323,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
 
         super.onRestoreInstanceState(savedInstanceState);
+
         timeLeftMilliseconds = savedInstanceState.getLong("millisecondsLeft");
-        timeLeftBreakTimer = savedInstanceState.getLong("breakTimeLeft");
         timerRunning = savedInstanceState.getBoolean("timerRunning");
-        breakTimerRunning = savedInstanceState.getBoolean("breakTimerRunning");
+
 
         updateCountDownText();
 //        updateButtons();
@@ -396,9 +347,9 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preference.edit();
 
         editor.putLong("millisecondsLeft", timeLeftMilliseconds);
-        editor.putLong("breakTimeLeft", timeLeftBreakTimer);
+        editor.putLong("breakTimeMillisecondsLeft", startBreakTimerMilliseconds);
         editor.putBoolean("timerRunning", timerRunning);
-        editor.putBoolean("breakTimerRunning", breakTimerRunning);
+        editor.putString("breakOrStudyTimer", breakOrStudyTimer);
 
         editor.apply();
 
@@ -406,19 +357,24 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
+
         super.onStart();
 
         SharedPreferences preference = getSharedPreferences("preference", MODE_PRIVATE);
 
         timeLeftMilliseconds = preference.getLong("millisecondsLeft", startTimeinMilliseconds);
-        timeLeftBreakTimer = preference.getLong("breakTimeLeft", startBreakTimerMilliseconds);
 
         timerRunning = preference.getBoolean("timerRunning", false);
-        breakTimerRunning = preference.getBoolean("breakTimerRunning", false);
 
+        breakOrStudyTimer = preference.getString("breakOrStudyTimer", "study");
 
         updateCountDownText();
-//        updateButtons();
+        updateButtons();
+
+        if(timerRunning){
+
+
+        }
 
     }
 }
