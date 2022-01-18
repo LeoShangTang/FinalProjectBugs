@@ -19,11 +19,14 @@ package com.example.finalproject;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.Locale;
@@ -31,10 +34,10 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     //Times
-    private static final long startTimerMilliseconds = 600000;
+    private static final long startTimeinMilliseconds = 600000;
     private static final long startBreakTimerMilliseconds = 300000;
 
-    private long timeLeftMilliseconds = startTimerMilliseconds;
+    private long timeLeftMilliseconds = startTimeinMilliseconds;
     private long timeLeftBreakTimer = startBreakTimerMilliseconds;
 
     private CountDownTimer countDownTimer;
@@ -51,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private Button resetButton;
     private Button breakStudyTimeButton;
 
+    private ImageButton settingsButton;
+
+
     //-----------------------------------ACTIONS_MADE------------------------------------------
 
     @Override
@@ -65,9 +71,21 @@ public class MainActivity extends AppCompatActivity {
         startPauseButton = findViewById(R.id.start_pause_button);
         resetButton = findViewById(R.id.reset_button);
         breakStudyTimeButton = findViewById(R.id.break_time_button);
-
+        settingsButton = findViewById(R.id.setting_Button);
 
         //-----------------------------------ACTIONS_OF_BUTTONS------------------------------------------
+
+        //-----------------------------------SETTINGS BUTTON------------------------------------------
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
         //---------------START AND PAUSE BUTTON
         startPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,7 +184,8 @@ public class MainActivity extends AppCompatActivity {
         .start();
         // Add if else statement for breakTimer????????
 
-        if(timeLeftMilliseconds == startTimerMilliseconds){ // If study timer currently exists, timer running is true after button pressed
+        //PROBLEM HERE
+        if(timeLeftMilliseconds == startTimeinMilliseconds){ // If study timer currently exists, timer running is true after button pressed
 
             timerRunning = true;
             breakTimerRunning = false;
@@ -190,6 +209,15 @@ public class MainActivity extends AppCompatActivity {
 
         cancelTimerBugFix();
 
+//        if(breakTimerRunning == true ){ //Resets Break timer back
+//
+//            breakTimerRunning = false;
+//
+//        }else if(timerRunning == true){ //Resets Study Timer back
+//
+//            timerRunning = false;
+//
+//        }
         timerRunning = false;
         breakTimerRunning = false; // KEEP IN EYE ON
 
@@ -207,9 +235,9 @@ public class MainActivity extends AppCompatActivity {
 
             timeLeftMilliseconds = startBreakTimerMilliseconds;
 
-        }else if(timerRunning == true||timeLeftMilliseconds == startTimerMilliseconds){ //Resets Study Timer back
+        }else if(timerRunning == true||timeLeftMilliseconds == startTimeinMilliseconds){ //Resets Study Timer back
 
-            timeLeftMilliseconds = startTimerMilliseconds;
+            timeLeftMilliseconds = startTimeinMilliseconds;
 
         }
 
@@ -248,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
     // --------------- STUDY TIMER STARTS AGAIN
     private void studyTimerStart(){
 
-        timeLeftMilliseconds = startTimerMilliseconds; // setting timer back to study time
+        timeLeftMilliseconds = startTimeinMilliseconds; // setting timer back to study time
 
         updateCountDownText();
         cancelTimerBugFix();
@@ -333,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences preference = getSharedPreferences("preference", MODE_PRIVATE);
 
-        timeLeftMilliseconds = preference.getLong("millisecondsLeft", startTimerMilliseconds);
+        timeLeftMilliseconds = preference.getLong("millisecondsLeft", startTimeinMilliseconds);
         timeLeftBreakTimer = preference.getLong("breakTimeLeft", startBreakTimerMilliseconds);
 
         timerRunning = preference.getBoolean("timerRunning", false);
