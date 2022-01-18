@@ -21,6 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
@@ -45,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean timerRunning;
     private boolean breakTimerRunning; // do ittttt
 
+    private String breakOrStudyTimer = "study";
 
     // Making sure that countdown text updates and is viewable
     private TextView countDownView;
@@ -56,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageButton settingsButton;
 
+    private SoundPool soundPool;
+    private int necoarc;
 
     //-----------------------------------ACTIONS_MADE------------------------------------------
 
@@ -72,6 +79,19 @@ public class MainActivity extends AppCompatActivity {
         resetButton = findViewById(R.id.reset_button);
         breakStudyTimeButton = findViewById(R.id.break_time_button);
         settingsButton = findViewById(R.id.setting_Button);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+        }else{
+
+            soundPool = new SoundPool(1, AudioManager.STREAM_ALARM, 0);
+            // or stream.music...
+
+        }
 
         //-----------------------------------ACTIONS_OF_BUTTONS------------------------------------------
 
@@ -91,9 +111,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(timerRunning == true){
+
                     pauseTimer();
+
                 }else if(timerRunning == false){
+
                     startTimer();
+
                 }
             }
         });
@@ -102,10 +126,14 @@ public class MainActivity extends AppCompatActivity {
         breakStudyTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(breakTimerRunning == true||timeLeftMilliseconds == startBreakTimerMilliseconds){
+                if(breakOrStudyTimer == "break" ){
+
                     studyTimerStart();
+
                 }else{
+
                     breakTimerStart();
+
                 }
             }
         });
@@ -141,6 +169,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTick(long timeLeftUntilFinished) { // COUNTDOWN HAPPENS
 
+//                if(timeLeftMilliseconds == startBreakTimerMilliseconds){
+//
+//                    timerRunning = false;
+//                    breakTimerRunning = true;
+//
+//                }else{
+//
+//                    breakTimerRunning = false;
+//                    timerRunning = true;
+//
+//                }
+
+                timerRunning = true;
+
                 timeLeftMilliseconds = timeLeftUntilFinished;
                 updateCountDownText();
 
@@ -148,11 +190,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() { // What Timer does after it's done
 
-                if(timeLeftMilliseconds == startBreakTimerMilliseconds){ // if break timer ends, automatically start study timer
+                if(breakOrStudyTimer == "break"){ // if break timer ends, automatically start study timer
 
                     startTimer();
-                    timerRunning = true;
-                    breakTimerRunning = false;
 
                     startPauseButton.setText("Pause");
 
@@ -163,8 +203,6 @@ public class MainActivity extends AppCompatActivity {
 
                     breakTimerStart();
                     startTimer();
-                    breakTimerRunning = true;
-                    timerRunning = false;
 
                     startPauseButton.setText("Pause");
 
@@ -185,19 +223,19 @@ public class MainActivity extends AppCompatActivity {
         // Add if else statement for breakTimer????????
 
         //PROBLEM HERE
-        if(timeLeftMilliseconds == startTimeinMilliseconds){ // If study timer currently exists, timer running is true after button pressed
+//        if(timeLeftMilliseconds == startTimeinMilliseconds){ // If study timer currently exists, timer running is true after button pressed
+//
+//            timerRunning = true;
+//            breakTimerRunning = false;
+//
+//        }else if(timeLeftBreakTimer == startBreakTimerMilliseconds){// If break timer currently exists, break timer running is true after button pressed
+//
+//            breakTimerRunning = true;
+//            timerRunning = false;
+//
+//        }
 
-            timerRunning = true;
-            breakTimerRunning = false;
-
-        }else if(timeLeftBreakTimer == startBreakTimerMilliseconds){// If break timer currently exists, break timer running is true after button pressed
-
-            breakTimerRunning = true;
-            timerRunning = false;
-
-        }
-
-       // timerRunning = true;
+       timerRunning = true;
        // breakTimerRunning = false; // ????
 
         startPauseButton.setText("Pause");
@@ -219,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
 //
 //        }
         timerRunning = false;
-        breakTimerRunning = false; // KEEP IN EYE ON
 
         startPauseButton.setText("Start");
 
@@ -231,22 +268,32 @@ public class MainActivity extends AppCompatActivity {
     private void resetTimer(){
 
 
-        if(breakTimerRunning == true ||timeLeftMilliseconds == startBreakTimerMilliseconds){ //Resets Break timer back
+        if(breakOrStudyTimer == "break"){
 
             timeLeftMilliseconds = startBreakTimerMilliseconds;
 
-        }else if(timerRunning == true||timeLeftMilliseconds == startTimeinMilliseconds){ //Resets Study Timer back
+        }else if (breakOrStudyTimer == "study"){
 
             timeLeftMilliseconds = startTimeinMilliseconds;
 
         }
+
+//        if(breakTimerRunning == true ){ //Resets Break timer back (|| timeLeftMilliseconds == startBreakTimerMilliseconds)
+//
+//
+//            timeLeftMilliseconds = startBreakTimerMilliseconds;
+//
+//        }if(timerRunning == true ){ //Resets Study Timer back (|| timeLeftMilliseconds == startTimeinMilliseconds)
+//
+//            timeLeftMilliseconds = startTimeinMilliseconds;
+//
+//        }
 
         updateCountDownText();
 
         cancelTimerBugFix();
 
         timerRunning = false;
-        breakTimerRunning = false; // KEEP IN EYE ON
         startPauseButton.setText("Start");
 
         //updateButtons();
@@ -263,7 +310,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Setting booleans
         ///breakTimerRunning = true; NOT TRUE YET--- ONLY TRUE IF PRESS START
-        breakTimerRunning = false;
+
+        breakOrStudyTimer = "break";
+
         timerRunning = false;
 
         breakStudyTimeButton.setText("Study Time");
@@ -282,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
         cancelTimerBugFix();
 
         //Setting booleans
-        breakTimerRunning = false;
+        breakOrStudyTimer = "study";
         timerRunning = false; // Be careful --- Change to false maybe..
 
         breakStudyTimeButton.setText("Break Time");
