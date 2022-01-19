@@ -1,8 +1,6 @@
 /*-------------NOTES----------------
 
-Only works on |Pixel 2 XL API 30| for now...
-
-Something breaking my code...
+MY ATTEMPT AT FOREGROUNDING (which didn't work)
 
 */
 package com.example.finalproject;
@@ -31,9 +29,6 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    //private static final long startTimeinMilliseconds = 15000; // 600000
-    //private static final long startBreakTimerMilliseconds = 10000; // 300000
-
     private long startTimeinMilliseconds;
     private long startBreakTimerMilliseconds;
     private long timeLeftMilliseconds;
@@ -49,21 +44,21 @@ public class MainActivity extends AppCompatActivity {
     private Button startPauseButton;
     private Button resetButton;
     private Button breakStudyTimeButton;
-    private ImageButton settingsButton;
-    private Button studySetButton;
     private Button breakSetButton;
-
-    private SoundPool soundPool;
-    private int necoarc;
+    private Button studySetButton;
 
     private EditText studyEditTextTimer;
     private EditText breakEditTextTimer;
+
+    private SoundPool soundPool;
+    private int necoarc;
 
     //-----------------------------------ACTIONS_MADE------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+//-----------------------------------RETRIEVING IDS------------------------------------------
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -72,92 +67,83 @@ public class MainActivity extends AppCompatActivity {
         startPauseButton = findViewById(R.id.start_pause_button);
         resetButton = findViewById(R.id.reset_button);
         breakStudyTimeButton = findViewById(R.id.break_time_button);
-        settingsButton = findViewById(R.id.setting_Button);
-        studySetButton = findViewById(R.id.study_timer_set);
+
         breakSetButton = findViewById(R.id.break_timer_set);
+        studySetButton = findViewById(R.id.study_timer_set);
 
         studyEditTextTimer = findViewById(R.id.study_timer_input);
         breakEditTextTimer = findViewById(R.id.break_timer_input);
 
-        //-----------------------------------ACTIONS_OF_BUTTONS------------------------------------------
+        //---------------ALARM SOUND
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+            AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
+            soundPool = new SoundPool.Builder().setMaxStreams(1).setAudioAttributes(audioAttributes).build();
+        }else{
+            soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+        }
+        necoarc = soundPool.load(this, R.raw.necoarc, 1);
 
-        //-----------------------------------Settings SET button for study timer------------------------------------------
+        //-----------------------------------ACTIONS_OF_BUTTONS------------------------------------------
+        //---------------STUDY CUSTOM SETTER
         studySetButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
+                String input = studyEditTextTimer.getText().toString();
+                if (input.length() == 0) {
+                    Toast.makeText(MainActivity.this, "Field can't be empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                long studyInput = Long.parseLong(input) * 60000;
+                if (studyInput == 0) {
+                    Toast.makeText(MainActivity.this, "Please enter a positive number", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            String input = studyEditTextTimer.getText().toString();
-
-//            if (input.length() == 0) {
-//
-//                Toast.makeText(MainActivity.this, "Can't Be Empty", Toast.LENGTH_SHORT).show();
-//               return;
-//
-//            }
-//            long studyMillisecondsInput = Long.parseLong(input) * 60000;
-//            if(studyMillisecondsInput == 0){
-//
-//                Toast.makeText(MainActivity.this, "Enter a number", Toast.LENGTH_SHORT).show();
-//                return;
-//
-//            }
-                long studyMillisecondsInput = Long.valueOf(input) * 60000;
-                setStudyTime(studyMillisecondsInput);
+                setStudyTime(studyInput);
+                studyEditTextTimer.setHint(input + " Minutes");
                 studyEditTextTimer.setText("");
 
             }
         });
 
-//-----------------------------------Settings SET button for break timer------------------------------------------
+        //---------------BREAK CUSTOM SETTER
         breakSetButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-
+            public void onClick(View v) {
                 String input = breakEditTextTimer.getText().toString();
+                if (input.length() == 0) {
+                    Toast.makeText(MainActivity.this, "Enter a valid number", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
+                long breakInput = Long.parseLong(input) * 60000;
+                if (breakInput == 0) {
+                    Toast.makeText(MainActivity.this, "Enter a number greater than 0", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-//                if (input.length() == 0) {
-//
-//                    Toast.makeText(MainActivity.this, "Can't Be Empty", Toast.LENGTH_SHORT).show();
-//                    return;
-//
-//                }
-//                long breakMillisecondsInput = Long.parseLong(input) * 60000;
-//                if(breakMillisecondsInput == 0){
-//
-//                    Toast.makeText(MainActivity.this, "Enter a number", Toast.LENGTH_SHORT).show();
-//                    return;
-//
-//                }
-                long breakMillisecondsInput = Long.valueOf(input) * 60000;
-                setStudyTime(breakMillisecondsInput);
+                setBreakTime(breakInput);
+                breakEditTextTimer.setHint(input + " Minutes");
                 breakEditTextTimer.setText("");
 
             }
         });
 
-        //-----------------------------------SETTINGS BUTTON------------------------------------------
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        //---------------START AND PAUSE BUTTON
+        //---------------START AND PAUSE
         startPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(timerRunning){
+                if(timerRunning || timeLeftMilliseconds == 0){
                     pauseTimer();
+
                 }else if(timerRunning == false){
                     startTimer();
+
                 }
             }
         });
 
-        //---------------BREAK AND STUDY BUTTON
+        //---------------BREAK AND STUDY
         breakStudyTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,48 +155,62 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //---------------RESET BUTTON
+        //---------------RESET
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 resetTimer();
+                stopService();
             }
         });
 
-        //---------------ALARM SOUND
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build();
-            soundPool = new SoundPool.Builder()
-                    .setMaxStreams(1)
-                    .setAudioAttributes(audioAttributes)
-                    .build();
-        }else{
-            soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-            // or stream.music...
-        }
-        necoarc = soundPool.load(this, R.raw.necoarc, 1);
-
-       updateCountDownText(); //WATCH OUTTTTTTTTTTTTTTTTTTT
+      updateCountDownText();
     }
 
     //-----------------------------------METHODS------------------------------------------
+    // -----------STARTS FOREGROUND
+    public void startService() {
+        String input = "Timer is currently running";
+
+        Intent serviceIntent = new Intent(this, TimerService.class);
+        serviceIntent.putExtra("inputExtra", input);
+
+        ContextCompat.startForegroundService(this, serviceIntent);
+    }
+    // -----------STOPS FOREGROUND
+    public void stopService() {
+
+        Intent serviceIntent = new Intent(this, TimerService.class);
+        stopService(serviceIntent);
+    }
 
     //--------------SET CUSTOM STUDY TIME
-    private void setStudyTime(long milliseconds1) {
-        startTimeinMilliseconds = milliseconds1;
-        resetTimer();
-       closeKeyboard();
-    }
-
-    //--------------SET CUSTOM BREAK TIME
-    private void setBreakTime(long milliseconds2) {
-        startBreakTimerMilliseconds = milliseconds2;
-        resetTimer();
+    private void setStudyTime(long milliseconds) {
+        startTimeinMilliseconds = milliseconds;
+        if(breakOrStudyTimer == "study"){
+            resetTimer();
+        }
         closeKeyboard();
     }
+    //--------------SET CUSTOM BREAK TIME
+    private void setBreakTime(long milliseconds) {
+        startBreakTimerMilliseconds = milliseconds;
+        if(breakOrStudyTimer == "break"){
+            resetTimer();
+        }
+        closeKeyboard();
+    }
+
+    //--------------CLOSES KEYBOARD
+    private void closeKeyboard(){
+
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     // ---------------UPDATES TEXT AND SETS FORMAT
     private void updateCountDownText(){
 
@@ -227,17 +227,9 @@ public class MainActivity extends AppCompatActivity {
             timeLeftFormatted = String.format(Locale.getDefault(),
                     "%02d:%02d", minutes, seconds);
         }
-
         countDownView.setText(timeLeftFormatted);
+    }
 
-    }
-    private void closeKeyboard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
     // ---------------STARTS TIMER
     private void startTimer(){
 
@@ -247,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
             public void onTick(long timeLeftUntilFinished) { // COUNTDOWN HAPPENS
 
                 timerRunning = true;
+                startService();
                 timeLeftMilliseconds = timeLeftUntilFinished;
                 updateCountDownText();
 
@@ -257,21 +250,19 @@ public class MainActivity extends AppCompatActivity {
 
                 if(breakOrStudyTimer == "break"){ // if break timer ends, automatically start study timer
 
-                    timerRunning = false;
+                    startService();
                     studyTimerStart();
                     startTimer();
                     breakOrStudyTimer = "study";
-
                     updateButtons();
                     updateCountDownText();
 
                 }else{// if start timer ends, automatically start break timer
 
-                    timerRunning = false;
+                    startService();
                    breakOrStudyTimer = "break";
                     breakTimerStart();
                     startTimer();
-
                     updateButtons();
                     updateCountDownText();
 
@@ -286,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
     // --------------- PAUSES TIMER
     private void pauseTimer(){
 
+        stopService();
         cancelTimerBugFix();
         timerRunning = false;
         updateButtons();
@@ -305,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        stopService();
         updateCountDownText();
         cancelTimerBugFix();
         timerRunning = false;
@@ -346,7 +339,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --------------- UPDATES BUTTONS
-    //BUGS BUGS BUGS BUGS
     private void updateButtons(){
 
         if(timerRunning){
@@ -377,71 +369,4 @@ public class MainActivity extends AppCompatActivity {
             countDownTimer.cancel();
         }
     }
-
-
-    //-------------------------SAVING DATA------------------------------------------
-
-   // @Override
-//    protected void onStop() {
-//        super.onStop();
-//
-//        SharedPreferences preference = getSharedPreferences("preference", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = preference.edit();
-//
-//        editor.putLong("endTime", endTime);
-//        editor.putLong("millisecondsLeft", timeLeftMilliseconds);
-//        editor.putLong("breakTimeMillisecondsLeft", startBreakTimerMilliseconds);
-//        editor.putBoolean("timerRunning", timerRunning);
-//        editor.putString("breakOrStudyTimer", breakOrStudyTimer);
-//
-//        editor.apply();
-//
-//    }
-//
-//    @Override
-//    protected void onStart() {
-//
-//        super.onStart();
-//
-//        SharedPreferences preference = getSharedPreferences("preference", MODE_PRIVATE);
-//
-//        if(breakOrStudyTimer == "break"){
-//
-//            timeLeftMilliseconds = preference.getLong("millisecondsLeft", startBreakTimerMilliseconds);
-//            breakOrStudyTimer = preference.getString("breakOrStudyTimer", "break");
-//
-//        }else if(breakOrStudyTimer == "study"){
-//
-//            timeLeftMilliseconds = preference.getLong("millisecondsLeft", startTimeinMilliseconds);
-//            breakOrStudyTimer = preference.getString("breakOrStudyTimer", "study");
-//
-//        }
-//
-//        timerRunning = preference.getBoolean("timerRunning", false);
-//
-//
-//        updateCountDownText();
-//        updateButtons();
-//
-//        if(timerRunning){
-//
-//            endTime = preference.getLong("endTime", 0);
-//            timeLeftMilliseconds = endTime - System.currentTimeMillis();
-//
-//            if(timeLeftMilliseconds < 0){
-//
-//                timeLeftMilliseconds = 0;
-//                timerRunning = false;
-//                updateCountDownText();
-//                updateButtons();
-//
-//            }else{
-//
-//                startTimer();
-//
-//            }
-//
-//        }
-//
-//    }
 }
