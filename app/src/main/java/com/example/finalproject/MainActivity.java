@@ -284,7 +284,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --------------- RESETS TIMER
-    //LOTS OF BUGS IN RESET METHOD
     private void resetTimer(){
 
         if(breakOrStudyTimer == "break"){
